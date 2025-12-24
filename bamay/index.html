@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Flashcards</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 24px;
+    }
+    h1 {
+      margin-bottom: 12px;
+    }
+    .top {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #ddd;
+    }
+    .word {
+      width: 200px;
+    }
+    button {
+      padding: 6px 10px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Flashcards</h1>
+
+<div class="top">
+  <button id="btnRandomFav">Random (favoritos)</button>
+  <button id="btnClearFav">Borrar favoritos</button>
+  <span id="status"></span>
+</div>
+
+<div id="list"></div>
+
+<script>
+  const WORDS = [
+    "bamay"
+    // agregar más carpetas acá
+  ];
+
+  const STORAGE_KEY = "flashcards_favs_v1";
+
+  function loadFavs() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveFavs(favs) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(favs));
+  }
+
+  function setStatus(text) {
+    document.getElementById("status").textContent = text;
+  }
+
+  function render() {
+    const list = document.getElementById("list");
+    list.innerHTML = "";
+
+    const favs = new Set(loadFavs());
+
+    WORDS.forEach(word => {
+      const row = document.createElement("div");
+      row.className = "row";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = favs.has(word);
+      checkbox.onchange = () => {
+        const current = new Set(loadFavs());
+        checkbox.checked ? current.add(word) : current.delete(word);
+        saveFavs([...current]);
+        setStatus(`Favoritos: ${current.size}`);
+      };
+
+      const label = document.createElement("div");
+      label.className = "word";
+      label.textContent = word;
+
+      const openBtn = document.createElement("button");
+      openBtn.textContent = "Abrir";
+      openBtn.onclick = () => {
+        window.location.href = `${word}/index.html`;
+      };
+
+      row.appendChild(checkbox);
+      row.appendChild(label);
+      row.appendChild(openBtn);
+      list.appendChild(row);
+    });
+
+    setStatus(`Favoritos: ${loadFavs().length}`);
+  }
+
+  document.getElementById("btnRandomFav").onclick = () => {
+    const favs = loadFavs();
+    if (favs.length === 0) {
+      setStatus("No hay favoritos.");
+      return;
+    }
+    const pick = favs[Math.floor(Math.random() * favs.length)];
+    window.location.href = `${pick}/index.html`;
+  };
+
+  document.getElementById("btnClearFav").onclick = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    render();
+  };
+
+  render();
+</script>
+
+</body>
+</html>
